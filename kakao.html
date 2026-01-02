@@ -636,6 +636,9 @@
       const { data } = await supabase.auth.getSession();
       currentUser = data.session?.user || null;
       updateAuthUI();
+      if(!currentUser){
+        updateStatus('로그인하면 기록을 불러옵니다.');
+      }
       if(currentUser) await loadPlacesFromSupabase();
       supabase.auth.onAuthStateChange(async (_event, session)=>{
         currentUser = session?.user || null;
@@ -645,6 +648,7 @@
         }else{
           places = [];
           render();
+          updateStatus('로그인하면 기록을 불러옵니다.');
         }
       });
     }
