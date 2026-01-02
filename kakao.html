@@ -284,12 +284,16 @@
     // Supabase 설정 (정적 호스팅용). 자신의 프로젝트 값으로 교체하세요.
     const SUPABASE_URL = 'https://ajvyclxrdvqsakgpbusi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdnljbHhyZHZxc2FrZ3BidXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTU3MjAsImV4cCI6MjA4MjkzMTcyMH0.9fnpb-hxIc9awbBuqz96yQKf6FbLKR1a6YJNs91uVOY';
-    // Supabase 클라이언트 (스토리지 접근 문제를 피하기 위해 세션 저장 비활성화)
+    // Supabase 클라이언트 (스토리지 접근 문제를 피하기 위해 메모리 스토리지 폴리필)
     const memoryStorage = {
       getItem: () => null,
       setItem: () => {},
       removeItem: () => {}
     };
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : window;
+    if(!globalObj.localStorage){
+      globalObj.localStorage = memoryStorage;
+    }
 
     const mapContainer = document.getElementById('map');
     const categoryFilter = document.getElementById('categoryFilter');
@@ -311,14 +315,7 @@
     const signOutBtn = document.getElementById('signOutBtn');
     const authStatus = document.getElementById('authStatus');
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        storage: memoryStorage,
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: true,
-      }
-    });
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let map;
     let geocoder;
