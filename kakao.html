@@ -284,7 +284,13 @@
     // Supabase 설정 (정적 호스팅용). 자신의 프로젝트 값으로 교체하세요.
     const SUPABASE_URL = 'https://ajvyclxrdvqsakgpbusi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdnljbHhyZHZxc2FrZ3BidXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTU3MjAsImV4cCI6MjA4MjkzMTcyMH0.9fnpb-hxIc9awbBuqz96yQKf6FbLKR1a6YJNs91uVOY';
-    const safeStorage = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage : undefined;
+    const safeStorage = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage : null;
+    const memoryStorage = {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {}
+    };
+    const authStorage = safeStorage || memoryStorage;
 
     const mapContainer = document.getElementById('map');
     const categoryFilter = document.getElementById('categoryFilter');
@@ -308,7 +314,7 @@
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
-        storage: safeStorage,
+        storage: authStorage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
