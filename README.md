@@ -9,11 +9,8 @@
 2. 브라우저에서 `http://127.0.0.1:5500` 에 접속한 뒤 `index.html` 에서 원하는 데모를 선택하세요.
 
 ## 파일
-- `kakao.html` : 카카오맵에서 직접 위치를 찍고 별점/후기/카테고리로 기록, 마커 표시와 필터 지원.
-- `22_1Geolocation.html` : 현재 위치 한 번 가져오기.
-- `22_2Geolocation.html` : 현재 위치 지속 추적.
-- `22_3Geolocation.html` : 현재 위치를 카카오맵에 표시 + 주소 검색 예제.
-- `index.html` : 위 데모들로 이동하는 진입 페이지.
+- `kakao.html` : 카카오맵에서 위치를 찍고 별점/후기/카테고리로 기록, Supabase 로그인/저장/삭제 지원.
+- `index.html` : `kakao.html`로 이동하는 진입 페이지.
 
 ## 카카오 앱 키
 - `kakao.html`, `22_3Geolocation.html` 은 Kakao JavaScript SDK 키가 필요합니다. 본인 앱 키를 `<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KEY&libraries=services"></script>` 부분에 넣고, Kakao 개발자 콘솔에서 `http://127.0.0.1:5500` 등 사용 도메인을 등록하세요.
@@ -40,40 +37,22 @@
 5. CORS: Project Settings → API → Allowed CORS origins에 배포 도메인/로컬 도메인 추가.
 
 ### 2) 프런트 설정
-- `kakao.html` 상단의 `SUPABASE_URL`, `SUPABASE_ANON_KEY`를 본인 값으로 교체합니다.
-- 정적 호스팅(Netlify/Vercel 등)에서 환경변수로 주입하고 싶다면 빌드 시 템플릿 치환을 사용하거나 별도 JS에서 불러오세요. 노출되어도 anon 키는 RLS로 보호되지만, 반드시 위 정책으로 권한을 제한하세요.
+- `kakao.html` 상단의 `SUPABASE_URL`, `SUPABASE_ANON_KEY`를 본인 값으로 교체했습니다. 값이 바뀌면 다시 치환하세요.
+- 정적 호스팅(Netlify/Vercel 등)에서 환경변수로 주입하고 싶다면 빌드 시 템플릿 치환을 사용하거나 별도 JS에서 불러오세요. anon 키는 노출돼도 되지만 RLS 정책이 필수입니다.
 
 ### 3) 배포(예: Netlify)
 1. repo를 깃에 푸시 후 Netlify에서 "Add new site" → Git repo 연결.
 2. Build command: 없음(정적). Publish directory: `.` (이 폴더 루트).
 3. Environment variables에 `SUPABASE_URL`, `SUPABASE_ANON_KEY`를 넣고, `kakao.html`에서 `process.env`를 읽도록 별도 스크립트를 쓰거나 정적 치환 도구(예: Netlify build plugins, 단순 sed)로 치환하십시오. 단순히 파일을 직접 수정해도 됩니다.
-4. 배포 후 나온 도메인을 Kakao 콘솔 허용 도메인과 Supabase CORS에 추가합니다.
+4. 배포 후 나온 도메인을 Kakao 콘솔 허용 도메인(필수)와 Supabase Auth Redirect URL에 추가합니다. Supabase Data API는 기본적으로 CORS 허용이라 별도 설정 필요 없습니다.
 
 ### 4) 앱 사용 흐름
 - 이메일/비밀번호로 로그인/회원가입 → 지도에서 위치 선택 → 저장.
 - 데이터는 각 `user_id` 별로 분리 저장되며, 다른 계정과 공유되지 않습니다(RLS 정책 기반).
 
-## (옵션2) Express + SQLite API로 기록 저장하기
-`kakao.html`이 `http://localhost:4000` API에 데이터를 저장/불러옵니다. 아래 순서로 서버를 켜 주세요.
-
-1. Node가 없다면 설치 후, 의존성 설치:
-   ```bash
-   cd /Users/abook/Desktop/macmini/map
-   npm init -y
-   npm install express better-sqlite3 cors
-   ```
-2. API 서버 실행:
-   ```bash
-   node server.js
-   ```
-   - 처음 실행 시 `places.db`(SQLite)가 생성되고 `places` 테이블이 만들어집니다.
-   - 기본 포트는 4000입니다. 포트를 바꾸려면 `PORT=5000 node server.js`처럼 실행하고, `kakao.html`의 `API_BASE` 상수를 같은 포트로 맞춰주세요.
-3. 지도 페이지 열기:
-   ```bash
-   python3 -m http.server 5500
-   # 브라우저에서 http://127.0.0.1:5500/kakao.html
-   ```
-4. 모바일(폰)에서 같은 Wi‑Fi라면, PC의 로컬 IP로 접속:
-   - API: `http://<PC IP>:4000`
-   - 정적 페이지: `http://<PC IP>:5500/kakao.html`
-   - `kakao.html`의 `API_BASE`를 PC IP로 바꿔야 합니다.
+## (참고) 로컬 정적 서버
+```bash
+cd /Users/abook/Desktop/macmini/map
+python3 -m http.server 5500
+# 브라우저: http://127.0.0.1:5500/kakao.html
+```
