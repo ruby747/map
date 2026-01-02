@@ -305,7 +305,7 @@
     const signOutBtn = document.getElementById('signOutBtn');
     const authStatus = document.getElementById('authStatus');
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let map;
     let geocoder;
@@ -351,7 +351,7 @@
       }
       try{
         updateStatus('서버에서 기록 불러오는 중...');
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('places')
           .select('*')
           .eq('user_id', currentUser.id)
@@ -369,7 +369,7 @@
 
     async function createPlace(payload){
       if(!currentUser) throw new Error('로그인이 필요합니다.');
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('places')
         .insert([{ ...payload, user_id: currentUser.id }])
         .select()
@@ -381,7 +381,7 @@
 
     async function deletePlace(id){
       if(!currentUser) throw new Error('로그인이 필요합니다.');
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('places')
         .delete()
         .eq('id', id)
@@ -633,14 +633,14 @@
     });
 
     async function initAuth(){
-      const { data } = await supabase.auth.getSession();
+      const { data } = await supabaseClient.auth.getSession();
       currentUser = data.session?.user || null;
       updateAuthUI();
       if(!currentUser){
         updateStatus('로그인하면 기록을 불러옵니다.');
       }
       if(currentUser) await loadPlacesFromSupabase();
-      supabase.auth.onAuthStateChange(async (_event, session)=>{
+      supabaseClient.auth.onAuthStateChange(async (_event, session)=>{
         currentUser = session?.user || null;
         updateAuthUI();
         if(currentUser){
@@ -677,7 +677,7 @@
         return;
       }
       try{
-        const fn = mode === 'signup' ? supabase.auth.signUp : supabase.auth.signInWithPassword;
+        const fn = mode === 'signup' ? supabaseClient.auth.signUp : supabaseClient.auth.signInWithPassword;
         const { error } = await fn({ email, password });
         if(error) throw error;
         updateStatus(mode==='signup' ? '회원가입 완료, 이메일 확인 후 로그인 가능' : '로그인 성공', 'ok');
@@ -691,7 +691,7 @@
     signInBtn.addEventListener('click', ()=>handleAuth('signin'));
     signUpBtn.addEventListener('click', ()=>handleAuth('signup'));
     signOutBtn.addEventListener('click', async ()=>{
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       updateStatus('로그아웃 완료', 'ok');
     });
 
