@@ -1,0 +1,19 @@
+{
+  "name": "map",
+  "version": "1.0.0",
+  "description": "1. 이 폴더에서 로컬 서버를 하나 띄웁니다. (카카오맵/Geolocation은 `file://` 에서 차단될 수 있어요)    ```bash    cd /Users/abook/Desktop/macmini/map    python3 -m http.server 5500    ``` 2. 브라우저에서 `http://127.0.0.1:5500` 에 접속한 뒤 `index.html` 에서 원하는 데모를 선택하세요.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "cors": "^2.8.5",
+    "express": "^5.2.1"
+  }
+}

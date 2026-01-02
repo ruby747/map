@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>22_1Geolocation.html</title>
+</head>
+<body>
+    <fieldset style="width: 55%;">
+        <legend>Geolocation API : 현재 위치의 위도와 경도 얻기</legend>
+        <span id="display" style="color: red; font-size: 1.5em; font-weight: bold;"></span>
+        <script>
+            
+            // geolocation.getCurrentPosition()함수 사용시
+            // https프로토콜로 요청해야 한다
+            // 로컬 개발인 localhost / 127.0.0.1 는 예외적으로 허용한다
+			// Geolocation API는 사용자의 민감한 개인정보(위치 정보) 를 다루기 때문에 브라우저
+			// 보안 정책상 https 에서만 허용한다
+			
+            // 위도/경도 좌표로 위치 확인 사이트
+            // https://www.geoplaner.com/
+            
+            console.log(navigator.geolocation);
+            var spanNode = document.querySelector('#display');
+            if(navigator.geolocation){
+                spanNode.textContent = "Geolocation API 지원 브라우저";
+                var options={enableHighAccuracy:true,timeout:3000,maximumAge:5000};
+                //현재 위치 정보를 한번만 얻기
+                navigator.geolocation.getCurrentPosition(success,failure,options);
+
+            }
+            function success(position){
+                console.log(position);
+                //position:GeolocationPosition객체
+                //position.coords.Coordinates객체
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                spanNode.textContent=`위도:${lat},경도:${lng}`;
+            }
+            function failure(error){
+                console.log(error);
+                switch(error.code){
+                    case 0:spanNode.textContent="알 수 없는 오류"; break;
+                    case 1:spanNode.textContent="허용 거부"; break;
+                    case 2:spanNode.textContent="위치 확인 불가"; break;
+                    case 3:spanNode.textContent="시간 초과"; break;
+                    default : spanNode.textContent=error.message;
+                }
+            }
+        </script>
+    </fieldset>
+</body>
+</html>

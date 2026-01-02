@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>나만의 카카오맵 장소 기록</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --accent:#22d3ee;
+      --accent-2:#a78bfa;
+      --muted:#94a3b8;
+      --text:#e2e8f0;
+      --card:#1f2937;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      padding:32px;
+      font-family:'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+      background:radial-gradient(circle at 20% 20%, #1e293b 0, #0b1224 40%, #0b1224 100%);
+      color:var(--text);
+    }
+    h1,h2{margin:0 0 12px 0;}
+    h1{font-size:26px; letter-spacing:-0.5px;}
+    h2{font-size:18px; color:var(--accent);}
+    a{color:var(--accent);}
+    .app{
+      display:grid;
+      grid-template-columns: 2fr 1fr;
+      gap:18px;
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid #1f2937;
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 25px 60px rgba(0,0,0,0.35);
+    }
+    #map{
+      width:100%;
+      height:520px;
+      border-radius:12px;
+      overflow:hidden;
+      background:#0b1224;
+      border:1px solid #1f2937;
+    }
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .toolbar label{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .controls{
+      display:grid;
+      gap:12px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .field label{
+      font-size:13px;
+      color:var(--muted);
+    }
+    input,textarea,select,button{
+      border:none;
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      font-family:inherit;
+      color:var(--text);
+      background:var(--card);
+    }
+    input:focus,textarea:focus,select:focus{
+      outline:2px solid var(--accent);
+    }
+    textarea{min-height:80px; resize:vertical;}
+    input,textarea,select{width:100%;}
+    button{
+      cursor:pointer;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#0b1224;
+      font-weight:700;
+      transition:transform .08s ease, box-shadow .08s ease;
+      box-shadow:0 10px 30px rgba(34,211,238,.25);
+    }
+    .submit-btn{width:100%;}
+    button:hover{transform:translateY(-1px);}
+    .ghost{
+      background:var(--card);
+      color:var(--text);
+      box-shadow:none;
+    }
+    .pill{
+      border-radius:40px;
+      padding:6px 10px;
+      background:#0f172a;
+      border:1px solid #1f2937;
+      font-size:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:var(--muted);
+    }
+    .list{
+      display:grid;
+      gap:10px;
+      margin-top:8px;
+      max-height:320px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      padding:12px;
+      border:1px solid #1f2937;
+      display:grid;
+      gap:6px;
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .badge{
+      background:rgba(34,211,238,.15);
+      color:var(--accent);
+      border-radius:20px;
+      padding:4px 10px;
+      font-size:12px;
+      font-weight:600;
+    }
+    .muted{color:var(--muted); font-size:12px;}
+    .coords{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .rating{color:#f59e0b; font-weight:700;}
+    .inline-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .info-window{
+      padding:10px;
+      min-width:180px;
+      color:#0b1224;
+    }
+    .info-window strong{display:block; margin-bottom:4px;}
+    .auth-card{
+      background:rgba(255,255,255,0.02);
+      border:1px dashed #1f2937;
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:8px;
+    }
+    .status-line{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(34,211,238,.12);
+      color:var(--accent);
+      font-size:13px;
+    }
+    .mobile-stack{display:none;}
+    @media (max-width: 980px){
+      body{padding:20px;}
+      .app{grid-template-columns:1fr;}
+      #map{height:60vh;}
+    }
+    @media (max-width: 640px){
+      body{padding:16px;}
+      .panel{padding:12px;}
+      button,input,textarea,select{font-size:16px;}
+      .toolbar{gap:6px; flex-direction:column; align-items:stretch;}
+      .mobile-stack{display:block;}
+      .toolbar > *{flex:1;}
+      #map{height:65vh;}
+    }
+  </style>
+</head>
+<body>
+  <header style="margin-bottom:14px;">
+    <h1>카카오맵으로 나만의 장소 기록</h1>
+    <p class="muted">지도에서 위치를 찍고 별점/후기를 남기면 마커로 쌓입니다. 카테고리로 필터도 가능해요.</p>
+    <div class="status-line" id="syncStatus">서버 연결 대기 중...</div>
+  </header>
+  <main class="app">
+    <section class="panel">
+      <div class="toolbar">
+        <button id="locateMe" class="ghost">📍 내 위치로 이동</button>
+        <div class="pill">카테고리 필터
+          <select id="categoryFilter" style="background:transparent;border:none;color:var(--text);padding:4px 6px;">
+            <option value="all">전체</option>
+          </select>
+        </div>
+        <div class="pill">
+          지도 클릭 → 새 위치 선택 <span id="selectedStatus"></span>
+        </div>
+      </div>
+      <div id="map"></div>
+    </section>
+    <section class="panel controls">
+      <div class="auth-card">
+        <h2>로그인 / 회원가입</h2>
+        <div id="authStatus" class="muted">로그인하면 내 계정에만 저장됩니다.</div>
+        <form class="controls" style="margin-top:8px;">
+          <div class="field">
+            <label for="authEmail">이메일</label>
+            <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+          </div>
+          <div class="field">
+            <label for="authPassword">비밀번호</label>
+            <input id="authPassword" type="password" placeholder="8자 이상" autocomplete="current-password"/>
+          </div>
+          <div class="inline-actions" style="justify-content:flex-start;">
+            <button type="button" id="signInBtn" class="ghost">로그인</button>
+            <button type="button" id="signUpBtn" class="ghost">회원가입</button>
+            <button type="button" id="signOutBtn" class="ghost" style="display:none;">로그아웃</button>
+          </div>
+        </form>
+      </div>
+      <div>
+        <h2>새 방문지 추가</h2>
+        <form id="placeForm" class="controls">
+          <div class="field">
+            <label for="title">장소 이름</label>
+            <input id="title" name="title" type="text" placeholder="예) 홍대 ○○카페" required />
+          </div>
+          <div class="field">
+            <label for="category">카테고리</label>
+            <input id="category" name="category" type="text" placeholder="카페, 맛집, 전시, 산책..." list="categoryList" />
+            <datalist id="categoryList"></datalist>
+          </div>
+          <div class="field">
+            <label for="rating">별점 <span id="ratingValue" class="rating">3</span> / 5</label>
+            <input id="rating" name="rating" type="range" min="1" max="5" step="1" value="3" />
+          </div>
+          <div class="field">
+            <label for="review">간단 후기</label>
+            <textarea id="review" name="review" placeholder="느꼈던 점을 짧게 기록하세요"></textarea>
+          </div>
+          <div class="field">
+            <label for="addressSearch">주소/장소 검색 (선택)</label>
+            <div style="display:flex; gap:8px;">
+              <input id="addressSearch" type="search" placeholder="예) 홍대입구역" style="flex:1;" />
+              <button type="button" id="searchAddress" class="ghost">이동</button>
+            </div>
+          </div>
+          <div class="coords">선택한 좌표: <span id="selectedCoords">지도에서 위치를 찍어주세요</span></div>
+          <button type="submit" class="submit-btn">지도에 저장</button>
+        </form>
+      </div>
+      <div>
+        <h2>기록된 장소</h2>
+        <div class="list" id="placeList"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=70c237708cd3341e725769b6750b4be6&libraries=services"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // Supabase 설정 (정적 호스팅용). 자신의 프로젝트 값으로 교체하세요.
+    const SUPABASE_URL = 'https://ajvyclxrdvqsakgpbusi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdnljbHhyZHZxc2FrZ3BidXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTU3MjAsImV4cCI6MjA4MjkzMTcyMH0.9fnpb-hxIc9awbBuqz96yQKf6FbLKR1a6YJNs91uVOY';
+
+    const mapContainer = document.getElementById('map');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const categoryList = document.getElementById('categoryList');
+    const locateBtn = document.getElementById('locateMe');
+    const selectedStatus = document.getElementById('selectedStatus');
+    const selectedCoordsText = document.getElementById('selectedCoords');
+    const addressSearchInput = document.getElementById('addressSearch');
+    const placeList = document.getElementById('placeList');
+    const ratingInput = document.getElementById('rating');
+    const ratingValue = document.getElementById('ratingValue');
+    const placeForm = document.getElementById('placeForm');
+    const searchButton = document.getElementById('searchAddress');
+    const syncStatus = document.getElementById('syncStatus');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const signInBtn = document.getElementById('signInBtn');
+    const signUpBtn = document.getElementById('signUpBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+    const authStatus = document.getElementById('authStatus');
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let map;
+    let geocoder;
+    let places = [];
+    let markers = [];
+    let selectedLatLng = null;
+    let selectionMarker = null;
+    let openInfoWindow = null;
+    let currentUser = null;
+
+    ratingInput.addEventListener('input', () => {
+      ratingValue.textContent = ratingInput.value;
+    });
+
+    function updateStatus(text, tone='info'){
+      if(!syncStatus) return;
+      syncStatus.textContent = text;
+      if(tone === 'error'){
+        syncStatus.style.background = 'rgba(248,113,113,0.15)';
+        syncStatus.style.color = '#f87171';
+      }else{
+        syncStatus.style.background = 'rgba(34,211,238,0.12)';
+        syncStatus.style.color = 'var(--accent)';
+      }
+    }
+
+    function normalizePlace(p){
+      const created = p.created_at ? new Date(p.created_at).getTime() : Number(p.createdAt || Date.now());
+      return {
+        ...p,
+        rating: Number(p.rating) || 0,
+        lat: Number(p.lat),
+        lng: Number(p.lng),
+        createdAt: created
+      };
+    }
+
+    async function loadPlacesFromSupabase(){
+      if(!currentUser){
+        places = [];
+        render();
+        return;
+      }
+      try{
+        updateStatus('서버에서 기록 불러오는 중...');
+        const { data, error } = await supabase
+          .from('places')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('created_at', {ascending:false});
+        if(error) throw error;
+        places = (data || []).map(normalizePlace);
+        updateStatus(`로그인됨 · ${places.length}개 불러옴`, 'ok');
+        render();
+      }catch(err){
+        console.error(err);
+        updateStatus('불러오기 실패: 권한/네트워크를 확인하세요.', 'error');
+        render();
+      }
+    }
+
+    async function createPlace(payload){
+      if(!currentUser) throw new Error('로그인이 필요합니다.');
+      const { data, error } = await supabase
+        .from('places')
+        .insert([{ ...payload, user_id: currentUser.id }])
+        .select()
+        .single();
+      if(error) throw error;
+      places.unshift(normalizePlace(data));
+      render();
+    }
+
+    async function deletePlace(id){
+      if(!currentUser) throw new Error('로그인이 필요합니다.');
+      const { error } = await supabase
+        .from('places')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', currentUser.id);
+      if(error) throw error;
+      places = places.filter(p=>p.id!==id);
+      render();
+    }
+
+    function initMap(){
+      const fallbackCenter = new kakao.maps.LatLng(37.5665, 126.9780); // 서울 시청
+      map = new kakao.maps.Map(mapContainer, {
+        center:fallbackCenter,
+        level:5,
+        mapTypeId:kakao.maps.MapTypeId.ROADMAP
+      });
+      geocoder = new kakao.maps.services.Geocoder();
+      // 현재 위치로 이동 시도
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(pos=>{
+          const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+          map.setCenter(latlng);
+        });
+      }
+      kakao.maps.event.addListener(map, 'click', function(mouseEvent){
+        const latlng = mouseEvent.latLng;
+        selectedLatLng = latlng;
+        setSelectionMarker(latlng);
+        selectedCoordsText.textContent = `${latlng.getLat().toFixed(5)}, ${latlng.getLng().toFixed(5)}`;
+        selectedStatus.textContent = '선택 완료';
+        closeInfoWindows(); // 다른 곳 클릭 시 열린 인포윈도우 닫기
+      });
+    }
+
+    function setSelectionMarker(latlng){
+      if(selectionMarker){ selectionMarker.setMap(null); }
+      selectionMarker = new kakao.maps.Marker({
+        position: latlng,
+        map: map,
+        zIndex: 10
+      });
+    }
+
+    function closeInfoWindows(){
+      if(openInfoWindow){
+        openInfoWindow.close();
+        openInfoWindow = null;
+      }
+    }
+
+    function clearMarkers(){
+      closeInfoWindows();
+      markers.forEach(m=>m.marker.setMap(null));
+      markers = [];
+    }
+
+    function renderMarkers(filteredPlaces){
+      clearMarkers();
+      filteredPlaces.forEach(place=>{
+        const position = new kakao.maps.LatLng(place.lat, place.lng);
+        const marker = new kakao.maps.Marker({ position, map });
+        const info = new kakao.maps.InfoWindow({
+          content: `
+          <div class="info-window" style="
+            background:linear-gradient(135deg, #22d3ee, #a78bfa);
+            color:#0f172a;
+            padding:12px 14px;
+            border-radius:12px;
+            box-shadow:0 12px 30px rgba(0,0,0,0.25);
+            min-width:220px;
+            font-family:'Noto Sans KR', sans-serif;
+          ">
+            <div style="display:flex; justify-content:space-between; gap:8px; align-items:center;">
+              <strong style="font-size:15px;">${place.title}</strong>
+              <span style="background:rgba(255,255,255,0.18); color:#0f172a; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700;">
+                ${place.category || '미분류'}
+              </span>
+            </div>
+            <div style="margin-top:6px; color:#0f172a; font-weight:700;">${'★'.repeat(place.rating)}${'☆'.repeat(5-place.rating)}</div>
+            ${place.review ? `<div style="margin-top:6px; color:#0f172a; font-size:13px; line-height:1.4;">${place.review}</div>` : ''}
+            <div style="margin-top:8px; font-size:12px; color:#0f172a; opacity:0.8;">${place.lat.toFixed(5)}, ${place.lng.toFixed(5)}</div>
+          </div>`
+        });
+        kakao.maps.event.addListener(marker, 'click', function(){
+          closeInfoWindows();
+          info.open(map, marker);
+          openInfoWindow = info;
+          map.panTo(position);
+        });
+        markers.push({id:place.id, marker, info});
+      });
+    }
+
+    function renderCategories(){
+      const categories = Array.from(new Set(places.map(p=>p.category).filter(Boolean)));
+      categoryFilter.innerHTML = '<option value="all">전체</option>' + categories.map(c=>`<option value="${c}">${c}</option>`).join('');
+      categoryList.innerHTML = categories.map(c=>`<option value="${c}"></option>`).join('');
+    }
+
+    function renderList(filteredPlaces){
+      if(!filteredPlaces.length){
+        placeList.innerHTML = '<div class="muted">아직 저장된 장소가 없어요.</div>';
+        return;
+      }
+      placeList.innerHTML = '';
+      filteredPlaces.forEach(place=>{
+        const item = document.createElement('div');
+        item.className = 'card';
+        item.innerHTML = `
+          <div class="card-header">
+            <div>
+              <div style="font-weight:700;">${place.title}</div>
+              <div class="muted">${new Date(place.createdAt).toLocaleString()}</div>
+            </div>
+            <div class="inline-actions">
+              <span class="badge">${place.category || '미분류'}</span>
+              <span class="rating">${'★'.repeat(place.rating)}</span>
+            </div>
+          </div>
+          <div class="muted">${place.review ? place.review : '간단 후기 없음'}</div>
+          <div class="coords">(${place.lat.toFixed(5)}, ${place.lng.toFixed(5)})</div>
+          <div class="inline-actions">
+            <button class="ghost" data-action="focus" data-id="${place.id}">지도에서 보기</button>
+            <button class="ghost" data-action="delete" data-id="${place.id}" style="color:#f87171;">삭제</button>
+          </div>
+        `;
+        placeList.appendChild(item);
+      });
+    }
+
+    function render(){
+      const currentFilter = categoryFilter.value || 'all';
+      renderCategories();
+      // 기존 선택이 리스트에 있으면 유지
+      if(Array.from(categoryFilter.options).some(o=>o.value===currentFilter)){
+        categoryFilter.value = currentFilter;
+      }
+      const filterValue = categoryFilter.value;
+      const filtered = filterValue === 'all' ? places : places.filter(p=>p.category === filterValue);
+      renderMarkers(filtered);
+      renderList(filtered.sort((a,b)=>b.createdAt - a.createdAt));
+    }
+
+    placeForm.addEventListener('submit', async function(e){
+      e.preventDefault();
+      if(!currentUser){
+        alert('로그인 후 저장할 수 있습니다.');
+        return;
+      }
+      if(!selectedLatLng){
+        alert('지도에서 위치를 먼저 선택하세요.');
+        return;
+      }
+      const formData = new FormData(placeForm);
+      const title = formData.get('title').trim();
+      const category = formData.get('category').trim();
+      const rating = parseInt(formData.get('rating'), 10) || 3;
+      const review = formData.get('review').trim();
+      if(!title){
+        alert('장소 이름을 입력하세요.');
+        return;
+      }
+      const newPlace = {
+        title,
+        category,
+        rating,
+        review,
+        lat: selectedLatLng.getLat(),
+        lng: selectedLatLng.getLng()
+      };
+      try{
+        await createPlace(newPlace);
+        updateStatus('저장 완료', 'ok');
+        placeForm.reset();
+        ratingValue.textContent = '3';
+        selectedCoordsText.textContent = '지도에서 위치를 찍어주세요';
+        selectedStatus.textContent = '';
+        if(selectionMarker){ selectionMarker.setMap(null); selectionMarker=null; }
+      }catch(err){
+        console.error(err);
+        alert('저장 실패: 키/네트워크/RLS 설정을 확인하세요.');
+        updateStatus('저장 실패', 'error');
+      }
+    });
+
+    categoryFilter.addEventListener('change', render);
+
+    placeList.addEventListener('click', async function(e){
+      const action = e.target.dataset.action;
+      if(!action) return;
+      const id = Number(e.target.dataset.id);
+      const targetPlace = places.find(p=>p.id===id);
+      if(!targetPlace) return;
+      if(action === 'focus'){
+        const position = new kakao.maps.LatLng(targetPlace.lat, targetPlace.lng);
+        map.panTo(position);
+        const match = markers.find(m=>m.id===id);
+        if(match){
+          closeInfoWindows();
+          match.info.open(map, match.marker);
+        }
+      }
+      if(action === 'delete'){
+        if(!currentUser){
+          alert('로그인 후 삭제할 수 있습니다.');
+          return;
+        }
+        if(confirm('이 장소 기록을 삭제할까요?')){
+          try{
+            await deletePlace(id);
+            updateStatus('삭제 완료', 'ok');
+          }catch(err){
+            console.error(err);
+            alert('삭제 실패: 권한/RLS/네트워크를 확인하세요.');
+            updateStatus('삭제 실패', 'error');
+          }
+        }
+      }
+    });
+
+    locateBtn.addEventListener('click', function(){
+      if(!navigator.geolocation){
+        alert('이 브라우저에서는 위치 확인이 지원되지 않습니다.');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+        map.panTo(latlng);
+      }, ()=>{
+        alert('현재 위치를 불러오지 못했어요.');
+      });
+    });
+
+    searchButton.addEventListener('click', function(){
+      const query = addressSearchInput.value.trim();
+      if(!query) return;
+      geocoder.addressSearch(query, function(result, status){
+        if(status === kakao.maps.services.Status.OK){
+          const latlng = new kakao.maps.LatLng(result[0].y, result[0].x);
+          map.panTo(latlng);
+          selectedLatLng = latlng;
+          setSelectionMarker(latlng);
+          selectedCoordsText.textContent = `${latlng.getLat().toFixed(5)}, ${latlng.getLng().toFixed(5)}`;
+          selectedStatus.textContent = '검색 위치 선택됨';
+        }else{
+          alert('주소를 찾을 수 없습니다.');
+        }
+      });
+    });
+
+    async function initAuth(){
+      const { data } = await supabase.auth.getSession();
+      currentUser = data.session?.user || null;
+      updateAuthUI();
+      if(currentUser) await loadPlacesFromSupabase();
+      supabase.auth.onAuthStateChange(async (_event, session)=>{
+        currentUser = session?.user || null;
+        updateAuthUI();
+        if(currentUser){
+          await loadPlacesFromSupabase();
+        }else{
+          places = [];
+          render();
+        }
+      });
+    }
+
+    function updateAuthUI(){
+      if(currentUser){
+        authStatus.textContent = `${currentUser.email} 로그인됨`;
+        signInBtn.style.display = 'inline-flex';
+        signUpBtn.style.display = 'none';
+        signOutBtn.style.display = 'inline-flex';
+        signInBtn.textContent = '계정 전환(다시 로그인)';
+      }else{
+        authStatus.textContent = '로그인하면 내 계정에만 저장됩니다.';
+        signInBtn.style.display = 'inline-flex';
+        signUpBtn.style.display = 'inline-flex';
+        signOutBtn.style.display = 'none';
+        signInBtn.textContent = '로그인';
+      }
+    }
+
+    async function handleAuth(mode){
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if(!email || !password){
+        alert('이메일과 비밀번호를 입력하세요.');
+        return;
+      }
+      try{
+        const fn = mode === 'signup' ? supabase.auth.signUp : supabase.auth.signInWithPassword;
+        const { error } = await fn({ email, password });
+        if(error) throw error;
+        updateStatus(mode==='signup' ? '회원가입 완료, 이메일 확인 후 로그인 가능' : '로그인 성공', 'ok');
+      }catch(err){
+        console.error(err);
+        alert(`인증 실패: ${err.message}`);
+        updateStatus('인증 실패', 'error');
+      }
+    }
+
+    signInBtn.addEventListener('click', ()=>handleAuth('signin'));
+    signUpBtn.addEventListener('click', ()=>handleAuth('signup'));
+    signOutBtn.addEventListener('click', async ()=>{
+      await supabase.auth.signOut();
+      updateStatus('로그아웃 완료', 'ok');
+    });
+
+    window.onload = async function(){
+      initMap();
+      await initAuth();
+    };
+  </script>
+</body>
+</html>
